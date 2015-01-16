@@ -32,6 +32,9 @@
 #define TPD_UPDATE_FIRMWARE
 #define HAVE_TOUCH_KEY
 
+#define TPD_POWER_SOURCE_CUSTOM><------>MT65XX_POWER_LDO_VGP4
+#define TPD_POWER_SOURCE_1800<-><------>MT65XX_POWER_LDO_VGP6
+
 //#define TPD_HAVE_CALIBRATION
 //#define TPD_CALIBRATION_MATRIX  {2680,0,0,0,2760,0,0,0};
 //#define TPD_WARP_START
@@ -42,7 +45,7 @@
 //#define TPD_WARP_Y(y) ( TPD_Y_RES - 1 - y )
 //#define TPD_WARP_X(x) ( x )
 
-#define DRIVER_NAME "S3202"
+#define DRIVER_NAME "S3203"
 #define TPD_I2C_SLAVE_ADDR (0x72 >> 1)
 
 //LINE <touch panel> <DATE2013821> <for touch panel debug> zhangxiaofei

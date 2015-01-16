@@ -16,8 +16,6 @@
 
 #include <linux/ioctl.h>
 
-//#define BMC056_SHARE_I2C_ADDRESS
-
 #define CALIBRATION_DATA_SIZE	12
 
 /* 7-bit addr: 
@@ -41,7 +39,8 @@
 #define CONVERT_G			1
 #define CONVERT_G_DIV		938
 #define CONVERT_VRV			1
-#define CONVERT_VRV_DIV	16384
+#define CONVERT_VRV_DIV		16384
+#define CONVERT_VRV_DIV2	(16384*4)
 
 #endif /* __BMM050_H__ */
 

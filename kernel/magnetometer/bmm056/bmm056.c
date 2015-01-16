@@ -1798,10 +1798,6 @@ BMM050_RETURN_FUNCTION_TYPE bmm050api_get_raw_xyz(struct bmm050api_mdata *mdata)
 #define MSE_LOG(fmt, args...)		printk(MSE_TAG fmt, ##args)
 
 static struct i2c_client *this_client = NULL;
-#ifdef BMC056_SHARE_I2C_ADDRESS
-static struct bmm050_i2c_data *g_bmm_obj = NULL;
-extern struct i2c_client *bma255_i2c_client;
-#endif
 
 // calibration msensor and orientation data
 static int sensor_data[CALIBRATION_DATA_SIZE];
@@ -1856,10 +1852,9 @@ enum {
 
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
-#ifndef BMC056_SHARE_I2C_ADDRESS
 static const struct i2c_device_id bmm050_i2c_id[] = {{BMM050_DEV_NAME,0},{}};
 static struct i2c_board_info __initdata bmm050_i2c_info = {I2C_BOARD_INFO(BMM050_DEV_NAME, BMM050_I2C_ADDR)};
-#endif
+
 /*----------------------------------------------------------------------------*/
 
 typedef enum {
@@ -1928,11 +1923,7 @@ static void bmm050_power(struct mag_hw *hw, unsigned int on)
 static int ECS_SaveData(int buf[CALIBRATION_DATA_SIZE])
 {
 #if DEBUG	
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
 #endif
 
 	mutex_lock(&sensor_data_mutex);
@@ -1981,12 +1972,7 @@ static int ECS_SaveData(int buf[CALIBRATION_DATA_SIZE])
 static int ECS_GetRawData(int data[3])
 {
 	struct bmm050api_mdata mdata;
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
-
 	u8 databuf[2] = {BMM050_CONTROL, 0x02};
 
 	bmm050api_read_mdataXYZ(&mdata);
@@ -2027,11 +2013,7 @@ static int bmm050_ReadChipInfo(char *buf, int bufsize)
 /*----------------------------------------------------------------------------*/
 static void bmm050_SetPowerMode(struct i2c_client *client, bool enable)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(client);
-#endif
 	u8 power_mode;
 
 	if (enable == FALSE)
@@ -2088,11 +2070,7 @@ static ssize_t show_posturedata_value(struct device_driver *ddri, char *buf)
 /*----------------------------------------------------------------------------*/
 static ssize_t show_layout_value(struct device_driver *ddri, char *buf)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
 
 	return sprintf(buf, "(%d, %d)\n[%+2d %+2d %+2d]\n[%+2d %+2d %+2d]\n",
 		data->hw->direction,atomic_read(&data->layout),	data->cvt.sign[0], data->cvt.sign[1],
@@ -2102,11 +2080,7 @@ static ssize_t show_layout_value(struct device_driver *ddri, char *buf)
 static ssize_t store_layout_value(struct device_driver *ddri, char *buf, size_t count)
 {
 	struct i2c_client *client = this_client;  
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
-	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
+	struct bmm050_i2c_data *data = i2c_get_clientdata(client);
 	int layout = 0;
 
 	if(1 == sscanf(buf, "%d", &layout))
@@ -2136,11 +2110,7 @@ static ssize_t store_layout_value(struct device_driver *ddri, char *buf, size_t 
 /*----------------------------------------------------------------------------*/
 static ssize_t show_status_value(struct device_driver *ddri, char *buf)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
 	ssize_t len = 0;
 
 	if(data->hw)
@@ -2159,11 +2129,7 @@ static ssize_t show_status_value(struct device_driver *ddri, char *buf)
 static ssize_t show_trace_value(struct device_driver *ddri, char *buf)
 {
 	ssize_t res;
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 	if(NULL == obj)
 	{
 		MSE_ERR( "bmm050_i2c_data is null!!\n");
@@ -2176,11 +2142,7 @@ static ssize_t show_trace_value(struct device_driver *ddri, char *buf)
 /*----------------------------------------------------------------------------*/
 static ssize_t store_trace_value(struct device_driver *ddri, char *buf, size_t count)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 	int trace;
 	if(NULL == obj)
 	{
@@ -2205,11 +2167,7 @@ static ssize_t store_trace_value(struct device_driver *ddri, char *buf, size_t c
 #define BMM050_AXIS_Z          2
 static ssize_t show_cpsdata_value(struct device_driver *ddri, char *buf)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 	struct bmm050api_mdata mdata;
 	s16 mag[3];
 
@@ -2225,11 +2183,7 @@ static ssize_t show_cpsdata_value(struct device_driver *ddri, char *buf)
 /*----------------------------------------------------------------------------*/
 static ssize_t show_cpsopmode_value(struct device_driver *ddri, char *buf)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 	u8 op_mode = 0xff;
 	u8 power_mode;
 
@@ -2251,11 +2205,7 @@ static ssize_t show_cpsopmode_value(struct device_driver *ddri, char *buf)
 /*----------------------------------------------------------------------------*/
 static ssize_t store_cpsopmode_value(struct device_driver *ddri, char *buf, size_t count)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 	long op_mode = -1;
 
 	strict_strtoul(buf, 10, &op_mode);
@@ -2316,11 +2266,7 @@ static ssize_t show_cpsreptxy_value(struct device_driver *ddri, char *buf)
 /*----------------------------------------------------------------------------*/
 static ssize_t store_cpsreptxy_value(struct device_driver *ddri, char *buf, size_t count)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 	unsigned long tmp = 0;
 	int err;
 	u8 data;
@@ -2380,11 +2326,7 @@ static ssize_t show_cpsreptz_value(struct device_driver *ddri, char *buf)
 /*----------------------------------------------------------------------------*/
 static ssize_t store_cpsreptz_value(struct device_driver *ddri, char *buf, size_t count)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 	unsigned long tmp = 0;
 	int err;
 	u8 data;
@@ -2422,11 +2364,7 @@ static ssize_t store_cpsreptz_value(struct device_driver *ddri, char *buf, size_
 
 static ssize_t show_test_value(struct device_driver *ddri, char *buf)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *client_data = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *client_data = i2c_get_clientdata(this_client);
-#endif
 	int err;
 
 	err = sprintf(buf, "%d\n", client_data->result_test);
@@ -2437,11 +2375,7 @@ static ssize_t store_test_value(struct device_driver *ddri, char *buf, size_t co
 {
 	unsigned long data;
 	int err;
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *client_data = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *client_data = i2c_get_clientdata(this_client);
-#endif
 	u8 dummy;
 
 	err = strict_strtoul(buf, 10, &data);
@@ -2557,11 +2491,7 @@ static int bmm050_delete_attr(struct device_driver *driver)
 /*----------------------------------------------------------------------------*/
 static int bmm050_open(struct inode *inode, struct file *file)
 {    
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
-	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
+	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);    
 	int ret = -1;	
 	
 	if(atomic_read(&obj->trace) & MMC_CTR_DEBUG)
@@ -2575,11 +2505,7 @@ static int bmm050_open(struct inode *inode, struct file *file)
 /*----------------------------------------------------------------------------*/
 static int bmm050_release(struct inode *inode, struct file *file)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(this_client);
-#endif
 
 	if(atomic_read(&obj->trace) & MMC_CTR_DEBUG)
 	{
@@ -2602,11 +2528,7 @@ static long bmm050_unlocked_ioctl(struct file *file, unsigned int cmd,unsigned l
 	int status; 				/* for OPEN/CLOSE_STATUS */
 	short sensor_status;		/* for Orientation and Msensor status */
 	int vec[3] = {0};	
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *clientdata = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *clientdata = i2c_get_clientdata(this_client);
-#endif
 	hwm_sensor_data* osensor_data;
 	uint32_t enable;
 
@@ -2877,11 +2799,11 @@ static long bmm050_unlocked_ioctl(struct file *file, unsigned int cmd,unsigned l
 			osensor_data = (hwm_sensor_data *)buff;
 			mutex_lock(&sensor_data_mutex);
 				
-			osensor_data->values[0] = sensor_data[8];
-			osensor_data->values[1] = sensor_data[9];
-			osensor_data->values[2] = sensor_data[10];
+			osensor_data->values[0] = sensor_data[8]/CONVERT_VRV_DIV2;
+			osensor_data->values[1] = sensor_data[9]/CONVERT_VRV_DIV2;
+			osensor_data->values[2] = sensor_data[10]/CONVERT_VRV_DIV2;
 			osensor_data->status = sensor_data[11];
-			osensor_data->value_divide = CONVERT_O_DIV;
+			osensor_data->value_divide = CONVERT_VRV_DIV;
 					
 			mutex_unlock(&sensor_data_mutex);
 
@@ -2924,11 +2846,7 @@ static int bmm050_operate(void* self, uint32_t command, void* buff_in, int size_
 	
 #if DEBUG	
 	struct i2c_client *client = this_client;  
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
-	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
+	struct bmm050_i2c_data *data = i2c_get_clientdata(client);
 #endif
 	
 #if DEBUG
@@ -2948,8 +2866,14 @@ static int bmm050_operate(void* self, uint32_t command, void* buff_in, int size_
 			else
 			{
 				value = *(int *)buff_in;
-
-				bmm050d_delay = value;
+				if(value <= 20)
+				{
+					bmm050d_delay = 20;
+				}
+				else
+				{
+					bmm050d_delay = value;
+				}
 				/* set the flag */
 				mutex_lock(&uplink_event_flag_mutex);
 				uplink_event_flag |= BMMDRV_ULEVT_FLAG_M_DELAY;
@@ -3036,11 +2960,7 @@ int bmm050_orientation_operate(void* self, uint32_t command, void* buff_in, int 
 	hwm_sensor_data* osensor_data;	
 #if DEBUG	
 	struct i2c_client *client = this_client;  
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
-	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
+	struct bmm050_i2c_data *data = i2c_get_clientdata(client);
 #endif
 	
 #if DEBUG
@@ -3061,7 +2981,14 @@ int bmm050_orientation_operate(void* self, uint32_t command, void* buff_in, int 
 			else
 			{
 				value = *(int *)buff_in;
-				bmm050d_delay = value;
+				if(value <= 20)
+				{
+					bmm050d_delay = 20;
+				}
+				else
+				{
+					bmm050d_delay = value;
+				}
 				/* set the flag */
 				mutex_lock(&uplink_event_flag_mutex);
 				uplink_event_flag |= BMMDRV_ULEVT_FLAG_O_DELAY;
@@ -3146,11 +3073,7 @@ int bmm050_m4g_operate(void* self, uint32_t command, void* buff_in, int size_in,
 	hwm_sensor_data* g_data;	
 #if DEBUG	
 	struct i2c_client *client = this_client;  
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
-	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
+	struct bmm050_i2c_data *data = i2c_get_clientdata(client);
 #endif
 	
 #if DEBUG
@@ -3171,7 +3094,14 @@ int bmm050_m4g_operate(void* self, uint32_t command, void* buff_in, int size_in,
 			else
 			{
 				value = *(int *)buff_in;
-				m4g_delay = value;
+				if(value <= 20)
+				{
+					m4g_delay = 20;
+				}
+				else
+				{
+					m4g_delay = value;
+				}
 				/* set the flag */
 				mutex_lock(&uplink_event_flag_mutex);
 				uplink_event_flag |= BMMDRV_ULEVT_FLAG_G_DELAY;
@@ -3257,11 +3187,7 @@ int bmm050_vrv_operate(void* self, uint32_t command, void* buff_in, int size_in,
 	hwm_sensor_data* vrv_data;	
 #if DEBUG	
 	struct i2c_client *client = this_client;  
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *data = g_bmm_obj;
-#else
-	struct bmm050_i2c_data *data = i2c_get_clientdata(this_client);
-#endif
+	struct bmm050_i2c_data *data = i2c_get_clientdata(client);
 #endif
 	
 #if DEBUG
@@ -3282,7 +3208,14 @@ int bmm050_vrv_operate(void* self, uint32_t command, void* buff_in, int size_in,
 			else
 			{
 				value = *(int *)buff_in;
-				vrv_delay = value;
+				if(value <= 20)
+				{
+					vrv_delay = 20;
+				}
+				else
+				{
+					vrv_delay = value;
+				}
 				/* set the flag */
 				mutex_lock(&uplink_event_flag_mutex);
 				uplink_event_flag |= BMMDRV_ULEVT_FLAG_VRV_DELAY;
@@ -3332,9 +3265,9 @@ int bmm050_vrv_operate(void* self, uint32_t command, void* buff_in, int size_in,
 				vrv_data = (hwm_sensor_data *)buff_out;
 				mutex_lock(&sensor_data_mutex);
 				
-				vrv_data->values[0] = m4g_data[4];
-				vrv_data->values[1] = m4g_data[5];
-				vrv_data->values[2] = m4g_data[6];
+				vrv_data->values[0] = m4g_data[4]/CONVERT_VRV_DIV2;
+				vrv_data->values[1] = m4g_data[5]/CONVERT_VRV_DIV2;
+				vrv_data->values[2] = m4g_data[6]/CONVERT_VRV_DIV2;
 				vrv_data->status = m4g_data[7];
 				vrv_data->value_divide = CONVERT_VRV_DIV;
 					
@@ -3361,11 +3294,7 @@ int bmm050_vrv_operate(void* self, uint32_t command, void* buff_in, int size_in,
 /*----------------------------------------------------------------------------*/
 static void bmm050_restore_hw_cfg(struct i2c_client *client)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj= g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(client);
-#endif
 
 	if (obj->op_mode > 3)
 	{
@@ -3388,11 +3317,7 @@ static void bmm050_restore_hw_cfg(struct i2c_client *client)
 /*----------------------------------------------------------------------------*/
 static int bmm050_suspend(struct i2c_client *client, pm_message_t msg) 
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(client);
-#endif
 
 	if(msg.event == PM_EVENT_SUSPEND)
 	{
@@ -3443,11 +3368,7 @@ static int bmm050_suspend(struct i2c_client *client, pm_message_t msg)
 /*----------------------------------------------------------------------------*/
 static int bmm050_resume(struct i2c_client *client)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(client);
-#endif
 
 	bmm050_power(obj->hw, 1);
 	bmm050_SetPowerMode(obj->client, TRUE);
@@ -3706,11 +3627,7 @@ static void bmm050_delay(u32 msec)
 /*----------------------------------------------------------------------------*/
 static int bmm050_init_client(struct i2c_client *client)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(client);
-#endif
 	int res = 0;
 
 	MSE_FUN();
@@ -3772,11 +3689,6 @@ static int bmm050_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 	struct hwmsen_object sobj_vrv;
 #endif //BMC050_VRV
 
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	if(client == NULL)
-		return -1;
-#endif
-	
 	if(!(data = kmalloc(sizeof(struct bmm050_i2c_data), GFP_KERNEL)))
 	{
 		err = -ENOMEM;
@@ -3800,15 +3712,9 @@ static int bmm050_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 
 	data->client = client;
 	new_client = data->client;
-#ifndef BMC056_SHARE_I2C_ADDRESS
 	i2c_set_clientdata(new_client, data);
-#endif
 	
 	this_client = new_client;	
-
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	g_bmm_obj = data;
-#endif
 
 	//initial client
 	if (err = bmm050_init_client(this_client))
@@ -3892,11 +3798,7 @@ static int bmm050_i2c_probe(struct i2c_client *client, const struct i2c_device_i
 /*----------------------------------------------------------------------------*/
 static int bmm050_i2c_remove(struct i2c_client *client)
 {
-#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct bmm050_i2c_data *obj = g_bmm_obj;
-#else
 	struct bmm050_i2c_data *obj = i2c_get_clientdata(client);
-#endif
 	
 	if(bmm050_delete_attr(&bmm050_sensor_driver.driver))
 	{
@@ -3907,16 +3809,13 @@ static int bmm050_i2c_remove(struct i2c_client *client)
 	unregister_early_suspend(&obj->early_drv);
 #endif
 	bmm050api_set_functional_state(BMM050_SUSPEND_MODE);
-#ifndef BMC056_SHARE_I2C_ADDRESS
 	this_client = NULL;
 	i2c_unregister_device(client);
-#endif
 	kfree(obj);	
 	misc_deregister(&bmm050_device);    
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
-#ifndef BMC056_SHARE_I2C_ADDRESS
 static struct i2c_driver bmm050_i2c_driver = {
 	.driver = {
 		.name  = BMM050_DEV_NAME,
@@ -3929,7 +3828,6 @@ static struct i2c_driver bmm050_i2c_driver = {
 #endif 
 	.id_table = bmm050_i2c_id,
 };
-#endif
 /*----------------------------------------------------------------------------*/
 static int bmm050_probe(struct platform_device *pdev) 
 {
@@ -3937,37 +3835,19 @@ static int bmm050_probe(struct platform_device *pdev)
 	MSE_FUN();
 
 	bmm050_power(hw, 1);
-	#ifdef BMC056_SHARE_I2C_ADDRESS
-	struct i2c_client* share_client = NULL;
-	if (bma255_i2c_client == NULL)
-	{
-		MSE_ERR("bma255_i2c_client is NULL!!!");
-		return -1;
-	}
-	else
-		share_client = bma255_i2c_client;
-	
-	if(bmm050_i2c_probe(share_client, NULL) < 0)
-		return -1;
-	#else
 	if(i2c_add_driver(&bmm050_i2c_driver))
 	{
 		MSE_ERR("add driver error\n");
 		return -1;
-	}
-	#endif
+	} 
 	return 0;
 }
 /*----------------------------------------------------------------------------*/
 static int bmm050_remove(struct platform_device *pdev)
 {
 	struct mag_hw *hw = get_cust_mag_hw();
-
- 	#ifdef BMC056_SHARE_I2C_ADDRESS
-	bmm050_i2c_remove(this_client);
-	#else
+	 MSE_FUN();
 	i2c_del_driver(&bmm050_i2c_driver);
-	#endif
 	bmm050_power(hw, 0);    
 	return 0;
 }
@@ -3976,10 +3856,8 @@ static int __init bmm050_init(void)
 {
 	MSE_FUN();
 	struct mag_hw *hw = get_cust_mag_hw();
-
-	#ifndef BMC056_SHARE_I2C_ADDRESS
-    i2c_register_board_info(hw->i2c_num, &bmm050_i2c_info, 1);
-	#endif
+	MSE_LOG("%s: i2c_number=%d\n", __func__,hw->i2c_num); 
+    	i2c_register_board_info(hw->i2c_num, &bmm050_i2c_info, 1);
 	if(platform_driver_register(&bmm050_sensor_driver))
 	{
 		MSE_ERR("failed to register driver");

@@ -1750,6 +1750,18 @@ int synaptics_auto_upgrade(void)
 }
 
 
+static void tpd_poweron()
+{
+	hwPowerOn(TPD_POWER_SOURCE_CUSTOM , VOL_2800, "TP");
+	hwPowerOn(TPD_POWER_SOURCE_1800,  VOL_1800, "TP");
+}
+
+static void tpd_poweroff()
+{
+       hwPowerDown(TPD_POWER_SOURCE_CUSTOM , "TP");
+       hwPowerDown(TPD_POWER_SOURCE_1800,  "TP");
+}
+
 static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 	u8 ii;
@@ -1771,7 +1783,8 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
  //   mt_set_gpio_dir(GPIO_CTP_EN_PIN, GPIO_DIR_OUT);
  //   mt_set_gpio_out(GPIO_CTP_EN_PIN, GPIO_OUT_ONE);
 	//LINE <touchpanel> <DATE2013821> <project custom power on> zhangxiaofei
-	hwPowerOn(MT65XX_POWER_LDO_VGP5, VOL_2800, "TP");
+//	hwPowerOn(MT65XX_POWER_LDO_VGP5, VOL_2800, "TP");
+	tpd_poweron();
 	msleep(10);
 	mt_set_gpio_mode(GPIO_CTP_RST_PIN, GPIO_CTP_RST_PIN_M_GPIO);
        mt_set_gpio_dir(GPIO_CTP_RST_PIN, GPIO_DIR_OUT);
@@ -1889,7 +1902,8 @@ err_query_device:
 err_tpd_data:
 
     kfree(ts);
-    hwPowerDown(MT65XX_POWER_LDO_VGP5, "TP");
+//    hwPowerDown(MT65XX_POWER_LDO_VGP5, "TP");
+    tpd_poweroff();
     return retval;
 }
 
