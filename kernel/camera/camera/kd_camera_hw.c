@@ -817,23 +817,36 @@ u32 pinSet[2][8] = {
             //return -EIO;
             //goto _kdCISModulePowerOn_exit_;
         }
-        mdelay(10);
-        //DVDD
-        if(TRUE != hwPowerOn(CAMERA_POWER_VCAM_D, VOL_1800,mode_name))
+        
+       	mdelay(10);
+        if (currSensorName && (0 == strcmp(SENSOR_DRVNAME_MT9V113MIPI_YUV,currSensorName))) 
         {
-             PK_DBG("[CAMERA SENSOR] Fail to enable digital power\n");
-             //return -EIO;
-             //goto _kdCISModulePowerOn_exit_;
-        }
-        mdelay(10);
+    	    //SUB andreya108
+        	PK_DBG("[CAMERA SENSOR] switching on CAMERA_POWER_VCAM_D_SUB on mt9v113mipiyuv\n");
+        	if(TRUE != hwPowerOn(CAMERA_POWER_VCAM_D_SUB, VOL_1800,mode_name))
+        	{
+	            PK_DBG("[CAMERA SENSOR] Fail to enable sub power\n");
+            	//return -EIO;
+            	//goto _kdCISModulePowerOn_exit_;
+        	}
+    	} else {
+        	//DVDD
+        	if(TRUE != hwPowerOn(CAMERA_POWER_VCAM_D, VOL_1800,mode_name))
+        	{
+             	PK_DBG("[CAMERA SENSOR] Fail to enable digital power\n");
+             	//return -EIO;
+             	//goto _kdCISModulePowerOn_exit_;
+        	}
+        	mdelay(10);
 
-        //AF_VCC
-        if(TRUE != hwPowerOn(CAMERA_POWER_VCAM_A2, VOL_2800,mode_name))
-        {
-            PK_DBG("[CAMERA SENSOR] Fail to enable analog power\n");
-            //return -EIO;
-            goto _kdCISModulePowerOn_exit_;
-        }
+        	//AF_VCC
+        	if(TRUE != hwPowerOn(CAMERA_POWER_VCAM_A2, VOL_2800,mode_name))
+        	{
+        	    PK_DBG("[CAMERA SENSOR] Fail to enable analog power\n");
+    	        //return -EIO;
+	            goto _kdCISModulePowerOn_exit_;
+        	}
+    	}
 
 		//enable active sensor
 		if (GPIO_CAMERA_INVALID != pinSet[pinSetIdx][IDX_PS_CMRST]) {
@@ -1156,18 +1169,29 @@ u32 pinSet[2][8] = {
                 //return -EIO;
                 goto _kdCISModulePowerOn_exit_;
             }
-            if(TRUE != hwPowerDown(CAMERA_POWER_VCAM_D, mode_name)) {
-                PK_DBG("[CAMERA SENSOR] Fail to OFF digital power\n");
-                //return -EIO;
-                goto _kdCISModulePowerOn_exit_;
-            }
-            if(TRUE != hwPowerDown(CAMERA_POWER_VCAM_D2,mode_name))
-            {
-                PK_DBG("[CAMERA SENSOR] Fail to enable digital power\n");
-                //return -EIO;
-                goto _kdCISModulePowerOn_exit_;
-            }
-    		
+
+            if (currSensorName && (0 == strcmp(SENSOR_DRVNAME_MT9V113MIPI_YUV,currSensorName))) 
+            { 
+            	PK_DBG("[CAMERA SENSOR] switching off CAMERA_POWER_VCAM_D_SUB on MT9V113MIPI_YUV\n");
+            	if(TRUE != hwPowerDown(CAMERA_POWER_VCAM_D_SUB,mode_name))
+            	{
+                	PK_DBG("[CAMERA SENSOR] Fail to enable analog power\n");
+                	//return -EIO;
+                	goto _kdCISModulePowerOn_exit_;
+            	} 
+            } else {
+            	if(TRUE != hwPowerDown(CAMERA_POWER_VCAM_D, mode_name)) {
+	                PK_DBG("[CAMERA SENSOR] Fail to OFF digital power\n");
+    	            //return -EIO;
+        	        goto _kdCISModulePowerOn_exit_;
+            	}
+            	if(TRUE != hwPowerDown(CAMERA_POWER_VCAM_D2,mode_name))
+	            {
+    	            PK_DBG("[CAMERA SENSOR] Fail to enable digital power\n");
+        	        //return -EIO;
+            	    goto _kdCISModulePowerOn_exit_;
+            	}
+    		}
     	}
       }
 	return 0;

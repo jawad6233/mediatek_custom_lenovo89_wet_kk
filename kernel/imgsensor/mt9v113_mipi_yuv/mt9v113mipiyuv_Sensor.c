@@ -860,8 +860,8 @@ UINT32 MT9V113MIPIGetInfo(MSDK_SCENARIO_ID_ENUM ScenarioId,
 { 
 		SENSORDB("MT9V113MIPIGetInfo\n");
     //cts test,for FOV view angle
-    pSensorInfo->SensorHorFOV = 60;
-    pSensorInfo->SensorVerFOV = 60;
+//    pSensorInfo->SensorHorFOV = 60;
+//    pSensorInfo->SensorVerFOV = 60;
 		pSensorInfo->SensorPreviewResolutionX=MT9V113MIPI_IMAGE_SENSOR_VGA_WIDTH;
 		pSensorInfo->SensorPreviewResolutionY=MT9V113MIPI_IMAGE_SENSOR_VGA_HEIGHT;
 		pSensorInfo->SensorFullResolutionX=MT9V113MIPI_IMAGE_SENSOR_VGA_WIDTH;
