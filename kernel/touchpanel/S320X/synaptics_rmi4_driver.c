@@ -131,11 +131,11 @@ extern char * synaptics_get_vendor_info(void);
 
 static const struct i2c_device_id tpd_id[] = {{DRIVER_NAME,0},{}};
 /* < DTS2012040603460 gkf61766 20120406 begin */
-static unsigned short force[] = {0,TPD_I2C_SLAVE_ADDR,I2C_CLIENT_END,I2C_CLIENT_END}; 
+static unsigned short force[] = {0,0x70,I2C_CLIENT_END,I2C_CLIENT_END}; 
 /* < DTS2012040603460 gkf61766 20120406 end */
 static const unsigned short * const forces[] = { force, NULL };
 //static struct i2c_client_address_data addr_data = { .forces = forces, };
-static struct i2c_board_info __initdata i2c_tpd={ I2C_BOARD_INFO(DRIVER_NAME, (TPD_I2C_SLAVE_ADDR))};		//add by lishengli 20130514
+static struct i2c_board_info __initdata i2c_tpd={ I2C_BOARD_INFO(DRIVER_NAME, (0x38))};		//add by lishengli 20130514
 
 
 static struct i2c_driver tpd_i2c_driver = {
@@ -1488,12 +1488,14 @@ static void tpd_work_func(struct work_struct *work)
 	u16 temp=0;
 	u8 i = 0 ;
 	u8 status = 0;
+	u8 button = 0; 
 	int retval = 0;
 	u8 finger_status = 0;
 	u8 finger_status_reg[3];
 	u8 data[F11_STD_DATA_LEN];
 	u8 num_of_finger_status_regs = 0;
 	struct point *ppt = NULL;
+	struct point ppt_v={0};	
       CTP_DBG("tpd_work_function read data to clear interrupt!!\n");
 
 	//clear interrupt bit
@@ -1502,7 +1504,7 @@ static void tpd_work_func(struct work_struct *work)
 		return;
 
 
-	#ifdef HAVE_TOUCH_KEY
+#if 0
 	//LINE <touchpanel> <DATE2013826> <hardware button> zhangxiaofei
 	if (status & 0x20) { /* key */
 	//if (status & ts->fn1a_mask) { /* key */
@@ -1545,6 +1547,29 @@ static void tpd_work_func(struct work_struct *work)
 		return;
 	}
 	#endif
+#ifdef HAVE_TOUCH_KEY
+	if (status & ts->fn1a_mask) 
+	{
+		retval = tpd_i2c_read_data(ts->client, 0x200, &button, 1);
+	}
+	
+	if (button)
+	{
+		for (i = 0; i < MAX_KEY_NUM; i++)
+		{
+			if (button & (0x01 << i))
+			{
+				ppt_v.x = tpd_keys_dim_local[i][0];
+				ppt_v.y = tpd_keys_dim_local[i][1];
+    			CTP_DBG("key down: %d!!\n",i);
+				tpd_down(ppt_v.x, ppt_v.y, 20);
+			}
+		}
+	} else {
+		tpd_up(0,0);		
+    	CTP_DBG("key up\n");
+	}
+#endif	
 
     CTP_DBG("status:%d!!\n",status);
 //	if (status & 0x04) { /* point */
@@ -1699,6 +1724,7 @@ static  int update_firmware_thread(void *priv)
 	TPD_DEBUG("[synaptics] enter update_firmware_thread\n");
 	synaptics_rmi4_detection_work(NULL);
     product_id = synaptics_get_vendor_info();
+    CTP_DBG("tpd product id: %s\n",product_id);
     #if 1
     if(product_id)
     {
@@ -1752,12 +1778,14 @@ int synaptics_auto_upgrade(void)
 
 static void tpd_poweron()
 {
+	CTP_DBG("Power On\n");
 	hwPowerOn(TPD_POWER_SOURCE_CUSTOM , VOL_2800, "TP");
 	hwPowerOn(TPD_POWER_SOURCE_1800,  VOL_1800, "TP");
 }
 
 static void tpd_poweroff()
 {
+	CTP_DBG("Power Off\n");
        hwPowerDown(TPD_POWER_SOURCE_CUSTOM , "TP");
        hwPowerDown(TPD_POWER_SOURCE_1800,  "TP");
 }
@@ -1849,12 +1877,15 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
 */	
 
 #ifdef HAVE_TOUCH_KEY
-	     set_bit(EV_KEY, tpd->dev->evbit);
-	    for(i=0;i<MAX_KEY_NUM;i++)
+	CTP_DBG("HAVE_TOUCH_KEY\n");
+
+	 set_bit(EV_KEY, tpd->dev->evbit);
+	for(i=0;i<MAX_KEY_NUM;i++)
 	   __set_bit(touch_key_array[i], tpd->dev->keybit);
 #endif
 	
 #ifdef TPD_UPDATE_FIRMWARE
+CTP_DBG("TPD_UPDATE_FIRMWARE\n");
 //	det_workqueue =	create_singlethread_workqueue("rmi_det_workqueue");
 //	INIT_DELAYED_WORK(&det_work,synaptics_rmi4_detection_work);
 //	queue_delayed_work(det_workqueue,&det_work,msecs_to_jiffies(EXP_FN_DET_INTERVAL));
@@ -1917,23 +1948,25 @@ static int tpd_local_init(void)
 		return -1;
 	}
     
-#ifdef TPD_HAVE_BUTTON     	
+#ifdef TPD_HAVE_BUTTON
+CTP_DBG("TPD_HAVE_BUTTON\n");
          if (FACTORY_BOOT == get_boot_mode())
          {
              for (i = 0; i < TPD_KEY_COUNT ; i++)
                  tpd_keys_local[i] = TPD_KEYSFACTORY[i];
          }
-         
-		 tpd_button_setting(TPD_KEY_COUNT, tpd_keys_local, tpd_keys_dim_local);
-#endif   
-  
+	tpd_button_setting(TPD_KEY_COUNT, tpd_keys_local, tpd_keys_dim_local);
+#endif
+
 #if (defined(TPD_WARP_START) && defined(TPD_WARP_END))    
+CTP_DBG("TPD_DO_WARP\n");
     TPD_DO_WARP = 1;
     memcpy(tpd_wb_start, tpd_wb_start_local, TPD_WARP_CNT*4);
     memcpy(tpd_wb_end, tpd_wb_start_local, TPD_WARP_CNT*4);
 #endif 
 
 #if (defined(TPD_HAVE_CALIBRATION) && !defined(TPD_CUSTOM_CALIBRATION))
+CTP_DBG("TPD_HAVE_CALIBRATION\n");
     memcpy(tpd_calmat, tpd_def_calmat_local, 8*4);
     memcpy(tpd_def_calmat, tpd_def_calmat_local, 8*4);	
 #endif  
@@ -1948,6 +1981,7 @@ static int tpd_local_init(void)
 
 static void tpd_resume(struct early_suspend *h)
 {
+	CTP_DBG("TPD wake up\n");
 	TPD_DEBUG("TPD wake up\n");
 
 /*
@@ -1988,6 +2022,7 @@ static void tpd_resume(struct early_suspend *h)
 static void tpd_suspend(struct early_suspend *h)
 {
 	TPD_DEBUG("TPD enter sleep\n");
+	CTP_DBG("TPD enter sleep\n");
 	mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
 	
  /*   mt_set_gpio_mode(GPIO_CTP_EN_PIN, GPIO_CTP_EN_PIN_M_GPIO);
@@ -2052,7 +2087,7 @@ static struct tpd_driver_t tpd_device_driver = {
 
 static int __init tpd_driver_init(void)
 {
-	CTP_DBG("synaptics touch panel driver init\n");
+	CTP_DBG("Synaptics touch panel driver init.\n");
 	i2c_register_board_info(0, &i2c_tpd, 1);
 	if(tpd_driver_add(&tpd_device_driver) < 0)
 		CTP_DBG("Error Add synaptics driver failed\n");
@@ -2061,12 +2096,12 @@ static int __init tpd_driver_init(void)
 
 static void __exit tpd_driver_exit(void)
 {
-	CTP_DBG("synaptics touch panel driver exit\n");
+	CTP_DBG("Synaptics touch panel driver exit\n");
 	tpd_driver_remove(&tpd_device_driver);
 }
 
 module_init(tpd_driver_init);
 module_exit(tpd_driver_exit);
 
-MODULE_DESCRIPTION("Mediatek synaptics Driver");
+MODULE_DESCRIPTION("Mediatek Synaptics Driver");
 
