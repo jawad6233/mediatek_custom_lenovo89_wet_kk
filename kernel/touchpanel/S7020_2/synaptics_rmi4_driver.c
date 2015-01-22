@@ -8,7 +8,7 @@
 #include <linux/wait.h>
 #include <linux/time.h>
 #include <linux/delay.h>
-#include "tpd_custom_s3203.h"
+#include "tpd_custom_synaptics_rmi4.h"
 #include "cust_gpio_usage.h"
 #include "tpd.h"
 #include "synaptics_dsx_rmi4_i2c.h"
@@ -1235,6 +1235,8 @@ flash_prog_mode:
                         (f01_query[10] & MASK_7BIT);
         memcpy(rmi->product_id_string, &f01_query[11], 10);
 
+		TPD_DMESG("tpd product_id_string: %s\n", rmi->product_id_string);
+
         if (rmi->manufacturer_id != 1) {
                 dev_err(&rmi4_data->i2c_client->dev,
                                 "%s: Non-Synaptics device found, manufacturer ID = %d\n",
@@ -1421,6 +1423,8 @@ static void tpd_down(int x, int y, int p, int id)
                 tpd_button(x, y, 1);
         }
 #endif
+	CTP_DBG("=================>D---[%4d %4d %4d %4d]\n", x, y, p, id);
+
 }
 
 static void tpd_up(int x, int y)
@@ -1435,6 +1439,9 @@ static void tpd_up(int x, int y)
                 tpd_button(x, y, 0);
         }
 #endif
+
+	CTP_DBG("=================>U---[%4d %4d]\n", x, y);
+
 }
 
 
@@ -1643,9 +1650,9 @@ static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
         int i;
 	u8 data;
 	int reset_count=3;
-	//unsigned char config_id[4];	
+	unsigned char config_id[4];	
 	//unsigned char tp_id[8];
-	//unsigned int config_id_no = 0;
+	unsigned int config_id_no = 0;
 	//u16 tp_x_for_lcd=0;
 	//u16 tp_y_for_lcd=0;
         //struct synaptics_rmi4_fn *fhandler;
@@ -1737,7 +1744,7 @@ TPD_RESET_PROBE:
 		TPD_DMESG("failed to create kernel thread: %d\n", retval);
 		goto error_kthread_creat_failed;
 	}
-#if 0
+#if 1
 	retval = tpd_i2c_read_data(ts->client,0x004b,config_id,sizeof(config_id));
 	if (retval < 0)
 	{
@@ -1755,8 +1762,9 @@ TPD_RESET_PROBE:
 	TPD_DMESG("[wj]the config_id_no is 0x%08x .\n", config_id_no);
 
 	//Need to implement in a kthread
-	if(config_id_no < 0x30303033)
+	if(config_id_no < CONFIG_ID)//config_id_no < 0x30303033
 	{
+		TPD_DMESG("TPD auto upgrade\n");
 		synaptics_rmi4_detection_work(NULL);
 		synaptics_fw_updater(synaImage);
 	}

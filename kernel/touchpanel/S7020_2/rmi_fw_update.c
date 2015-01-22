@@ -32,14 +32,11 @@
 //#include <linux/input/synaptics_dsx.h>
 #include "synaptics_dsx_rmi4_i2c.h"
 #include "tpd.h"
-//#include "SynaImage.h"
-
-
-
+//#include "SynaImageLenovo.h"
 
 #define DEBUG_FW_UPDATE
 #define SHOW_PROGRESS
-#define FW_IMAGE_NAME "SynaImage.h"
+#define FW_IMAGE_NAME "SynaImageLenovo.h"
 
 #define CHECKSUM_OFFSET 0x00
 #define BOOTLOADER_VERSION_OFFSET 0x07

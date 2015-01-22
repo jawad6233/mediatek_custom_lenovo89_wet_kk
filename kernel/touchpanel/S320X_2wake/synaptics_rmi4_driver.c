@@ -1,3 +1,4 @@
+#define DEBUG
 #include <linux/interrupt.h>
 #include <cust_eint.h>
 #include <linux/i2c.h>
@@ -11,14 +12,17 @@
 #include "cust_gpio_usage.h"
 #include "tpd.h"
 #include "synaptics_dsx_rmi4_i2c.h"
-#include "SynaImage.h"
-#include "SynaImage_BYD.h"
-#include "SynaImage_BM.h"
-#include "SynaImage_JTOUCH.h"
+//#include "SynaImageLenovo.h"
+#include "Lp.h"
+//#include "Sprout.h"
 
 #include <mach/mt_pm_ldo.h>
 #include <mach/mt_typedefs.h>
 #include <mach/mt_boot.h>
+
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+#include <linux/input/sweep2wake.h>
+#endif
 
 /* < DTS2012031404176  linghai 20120314 begin */
 #ifdef TPD_HAVE_BUTTON 
@@ -72,8 +76,11 @@ struct tpd_data {
 	struct function_descriptor f01;
 	struct function_descriptor f11;
 	struct function_descriptor f1a;
-	u8 fn11_mask;
+	
+    u8 fn11_mask;
 	u8 fn1a_mask;
+
+
 	struct point *cur_points;
 	struct point *pre_points;
 	struct mutex io_ctrl_mutex;
@@ -118,6 +125,7 @@ static void tpd_up(int x, int y);
 static int tpd_sw_power(struct i2c_client *client, int on);
 static int tpd_clear_interrupt(struct i2c_client *client);
 extern int synaptics_fw_updater(unsigned char *fw_data);
+extern int synaptics_fw_dumper(void);
 
 //static u8 get_config_version(void);
 
@@ -154,7 +162,6 @@ static ssize_t synaptics_rmi4_full_pm_cycle_show(struct device *dev,
 
 static ssize_t synaptics_rmi4_full_pm_cycle_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count);
-
 #endif
 
 #if PROXIMITY
@@ -1441,7 +1448,12 @@ static void tpd_down(int x, int y, int p)
 	input_report_abs(tpd->dev, ABS_MT_POSITION_X, x);
 	input_report_abs(tpd->dev, ABS_MT_POSITION_Y, y);
 	input_mt_sync(tpd->dev);
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	if (sweep2wake) {
+		printk("[SWEEP2WAKE]: detecting sweep\n");
+		detect_sweep2wake(x, y, jiffies, p);
+	}
+#endif
 	#ifdef TPD_HAVE_BUTTON
 	/*BEGIN PN: DTS2012051505359 ,modified by s00179437 , 2012-05-31*/
 	if (FACTORY_BOOT == boot_mode || RECOVERY_BOOT == boot_mode)
@@ -1464,7 +1476,24 @@ static void tpd_up(int x, int y)
 	//input_report_abs(tpd->dev, ABS_MT_POSITION_X, x);
 	//input_report_abs(tpd->dev, ABS_MT_POSITION_Y, y);
 	input_mt_sync(tpd->dev);
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	s2w_st_flag = 0;
+	if (sweep2wake > 0) {
+		//printk("[SWEEP2WAKE]:line : %d | func : %s\n", __LINE__, __func__);
+		//printk("[SWEEP2WAKE]:line : %d | func : %s\n", __LINE__, __func__);
+		exec_count = true;
+		barrier[0] = false;
+		barrier[1] = false;
+		scr_on_touch = false;
+		tripoff = 0;
+		tripon = 0;
+		triptime = 0;
+	}
+	if (doubletap2wake && scr_suspended) {
+		printk("[SWEEP2WAKE]: detecting d2w\n");
+		doubletap2wake_func(x, y, jiffies);
+	}
+#endif
 	#ifdef TPD_HAVE_BUTTON
 	/*BEGIN PN: DTS2012051505359 ,modified by s00179437 , 2012-05-31*/
 	if (FACTORY_BOOT == boot_mode || RECOVERY_BOOT == boot_mode)
@@ -1717,40 +1746,22 @@ static int tpd_clear_interrupt(struct i2c_client *client)
 static struct task_struct * synaptics_update_thread;
 static  int update_firmware_thread(void *priv)
 {
+	int i, retval = 0;
+	unsigned int config_id_no = 0;
+	unsigned char config_id[4];
 	char *product_id = NULL;
 	TPD_DEBUG("[synaptics] enter update_firmware_thread\n");
 	synaptics_rmi4_detection_work(NULL);
     product_id = synaptics_get_vendor_info();
-    CTP_DBG("tpd product id: %s\n",product_id);
-    #if 1
-    if(product_id)
-    {
-        if( 0 == memcmp(product_id, "BYD", 3))
-        {
-            CTP_DBG("BYD TP ready to upgrade \n");
-            synaptics_fw_updater(synaImage_BYD);
-        }
-        else if( 0 == memcmp(product_id, "BM", 2))
-        {
-            //default BM TP
-            CTP_DBG("BM TP ready to upgrade \n");
-            synaptics_fw_updater(synaImage_BM);
-        }
-        else if( 0 == memcmp(product_id, "JTOUCH", 6))
-        {
-            CTP_DBG("JTOUCH TP ready to upgrade \n" );
-            synaptics_fw_updater(synaImage_JTOUCH);
-        }
-        else
-        {
-            CTP_DBG("no match TP: \n", product_id);
-        }
-    }
-    else
-    {
-        CTP_DBG("UNKNOWN TP \n");
-    }
-    #endif
+//    config_id_no = synaptics_get_fw_version();
+
+	CTP_DBG("tpd product id: %s\n",product_id);
+//    CTP_DBG("the config_id_no is 0x%08x .\n", config_id_no);
+
+    //Need to implement in a kthread
+    synaptics_fw_updater(synaImage);
+//    synaptics_fw_dumper();
+
     kthread_should_stop();
 	return NULL;
 	
@@ -1783,8 +1794,12 @@ static void tpd_poweron()
 static void tpd_poweroff()
 {
 	CTP_DBG("Power Off\n");
+// disable power off if update possible
+#ifdef TPD_UPDATE_FIRMWARE
+#else
        hwPowerDown(TPD_POWER_SOURCE_CUSTOM , "TP");
        hwPowerDown(TPD_POWER_SOURCE_1800,  "TP");
+#endif
 }
 
 static int tpd_probe(struct i2c_client *client, const struct i2c_device_id *id)
@@ -1981,37 +1996,20 @@ static void tpd_resume(struct early_suspend *h)
 	CTP_DBG("TPD wake up\n");
 	TPD_DEBUG("TPD wake up\n");
 
-/*
-#ifdef TPD_CLOSE_POWER_IN_SLEEP	
-	hwPowerOn(TPD_POWER_SOURCE,VOL_3300,"TP"); 
-#else
-#ifdef MT6573
-	mt_set_gpio_mode(GPIO_CTP_EN_PIN, GPIO_CTP_EN_PIN_M_GPIO);
-    mt_set_gpio_dir(GPIO_CTP_EN_PIN, GPIO_DIR_OUT);
-	mt_set_gpio_out(GPIO_CTP_EN_PIN, GPIO_OUT_ONE);
-#endif	
-	msleep(100);
-
-	mt_set_gpio_mode(GPIO_CTP_RST_PIN, GPIO_CTP_RST_PIN_M_GPIO);
-    mt_set_gpio_dir(GPIO_CTP_RST_PIN, GPIO_DIR_OUT);
-    mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ZERO);  
-    msleep(1);  
-    mt_set_gpio_mode(GPIO_CTP_RST_PIN, GPIO_CTP_RST_PIN_M_GPIO);
-    mt_set_gpio_dir(GPIO_CTP_RST_PIN, GPIO_DIR_OUT);
-    mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ONE);
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+printk("[SWEEP2WAKE]: resume\n");
+	scr_suspended = false;
+	if (sweep2wake == 0 && doubletap2wake == 0)
 #endif
-*/
-/*   	mt_set_gpio_mode(GPIO_CTP_RST_PIN, GPIO_CTP_RST_PIN_M_GPIO);
-    mt_set_gpio_dir(GPIO_CTP_RST_PIN, GPIO_DIR_OUT);
-    mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ZERO);  
-    msleep(50);  
-    mt_set_gpio_mode(GPIO_CTP_RST_PIN, GPIO_CTP_RST_PIN_M_GPIO);
-    mt_set_gpio_dir(GPIO_CTP_RST_PIN, GPIO_DIR_OUT);
-    mt_set_gpio_out(GPIO_CTP_RST_PIN, GPIO_OUT_ONE);*/
-	
+{	
 	tpd_sw_power(ts->client, 1);
 	tpd_clear_interrupt(ts->client);
-	mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);  
+	mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
+}
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	else if (sweep2wake > 0 || doubletap2wake > 0)
+		mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
+#endif
 	
 	return;
 }
@@ -2020,29 +2018,23 @@ static void tpd_suspend(struct early_suspend *h)
 {
 	TPD_DEBUG("TPD enter sleep\n");
 	CTP_DBG("TPD enter sleep\n");
+
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	scr_suspended = true;
+printk("[SWEEP2WAKE]: early suspernd\n");
+	if (sweep2wake == 0 && doubletap2wake == 0)
+#endif
+{
 	mt_eint_mask(CUST_EINT_TOUCH_PANEL_NUM);
-	
- /*   mt_set_gpio_mode(GPIO_CTP_EN_PIN, GPIO_CTP_EN_PIN_M_GPIO);
-    mt_set_gpio_dir(GPIO_CTP_EN_PIN, GPIO_DIR_OUT);
-    mt_set_gpio_out(GPIO_CTP_EN_PIN, GPIO_OUT_ZERO);*/
-   
+ 
 	tpd_sw_power(ts->client, 0);
-
-/*	 
-#ifdef TPD_CLOSE_POWER_IN_SLEEP	
-	hwPowerDown(TPD_POWER_SOURCE,"TP");
-#else
-i2c_smbus_write_i2c_block_data(i2c_client, 0xA5, 1, &data);  //TP enter sleep mode
-#ifdef MT6573
-mt_set_gpio_mode(GPIO_CTP_EN_PIN, GPIO_CTP_EN_PIN_M_GPIO);
-mt_set_gpio_dir(GPIO_CTP_EN_PIN, GPIO_DIR_OUT);
-mt_set_gpio_out(GPIO_CTP_EN_PIN, GPIO_OUT_ZERO);
+}
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	else if (sweep2wake > 0 || doubletap2wake > 0)
+	mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM);
 #endif
-
-#endif
-*/
-	 return;
- } 
+	return;
+} 
 
 
 
