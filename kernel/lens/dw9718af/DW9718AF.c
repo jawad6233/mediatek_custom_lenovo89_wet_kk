@@ -14,11 +14,11 @@
 #include "../camera/kd_camera_hw.h"
 
 #define LENS_I2C_BUSNUM 1
-static struct i2c_board_info __initdata kd_lens_dev={ I2C_BOARD_INFO("DW9718AF", 0x18)};
+static struct i2c_board_info __initdata kd_lens_dev={ I2C_BOARD_INFO("DW9718AF", 0x19)};
 
 
 #define DW9718AF_DRVNAME "DW9718AF"
-#define DW9718AF_VCM_WRITE_ID           0x18
+#define DW9718AF_VCM_WRITE_ID           0x19
 
 #define DW9718AF_DEBUG
 #ifdef DW9718AF_DEBUG
