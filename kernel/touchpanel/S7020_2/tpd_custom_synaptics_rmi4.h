@@ -39,7 +39,7 @@
 #define LCD_X           720
 #define LCD_Y           1280
 
-#define TPD_UPDATE_FIRMWARE
+//#define TPD_UPDATE_FIRMWARE
 #define HAVE_TOUCH_KEY
 #define TPD_DEBUG
 

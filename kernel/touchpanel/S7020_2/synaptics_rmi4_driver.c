@@ -1,3 +1,4 @@
+#define DEBUG
 /*< XASP-360 linghai 20120626 begin */
 #include <linux/interrupt.h>
 #include <cust_eint.h>
@@ -544,6 +545,11 @@ int tpd_i2c_read_data(struct i2c_client *client,
 	u16 old_flag;
         mutex_lock(&(ts->io_ctrl_mutex));
 
+    dev_dbg(&client->dev,
+            "%s(addr=0x%0x, len=%d): i2c={addr=0x%02x, name=%s, irq=0x%0x}\n",
+            __func__, addr, length, client->addr, client->name, client->irq);
+
+
         retval = tpd_set_page(client, addr);
         if (retval != PAGE_SELECT_LEN)
                 goto exit;
@@ -593,6 +599,10 @@ int tpd_i2c_write_data(struct i2c_client *client,
 	u8 buf[5] = {0};
 	int tmp_addr = addr;
 	int left_len = length;
+
+    dev_dbg(&client->dev,
+            "%s(addr=0x%0x, len=%d): i2c={addr=0x%02x, name=%s, irq=0x%0x}\n",
+            __func__, addr, length, client->addr, client->name, client->irq);
 	
 	mutex_lock(&(ts->io_ctrl_mutex));
 	
@@ -1404,7 +1414,9 @@ static void tpd_down(int x, int y, int p, int id)
 #endif//lenovo jixu modify 20130415 end area touch
 {
         input_report_key(tpd->dev, BTN_TOUCH, 1);
+#if !defined(LENOVO_AREA_TOUCH)//lenovo jixu add 20130415 begin area touch
         input_report_abs(tpd->dev, ABS_MT_TRACKING_ID, id);
+#endif
         //input_report_abs(tpd->dev, ABS_PRESSURE, p);
         input_report_abs(tpd->dev, ABS_MT_TOUCH_MAJOR, p);
         input_report_abs(tpd->dev, ABS_MT_POSITION_X, x);
@@ -1423,7 +1435,7 @@ static void tpd_down(int x, int y, int p, int id)
                 tpd_button(x, y, 1);
         }
 #endif
-	CTP_DBG("=================>D---[%4d %4d %4d %4d]\n", x, y, p, id);
+	CTP_DBG("=================>D---[%4d %4d %4d %4d]\n", x, y, p);
 
 }
 
@@ -1546,7 +1558,11 @@ static int touch_event_handler(void *unused)
 			{
 				ppt_v.x = tpd_keys_dim_local_wvga[i][0];
 				ppt_v.y = tpd_keys_dim_local_wvga[i][1];
+#if defined(LENOVO_AREA_TOUCH)
+				tpd_down(ppt_v.x, ppt_v.y, 20, 10, 10);
+#else
 				tpd_down(ppt_v.x, ppt_v.y, 20, 10+i);
+#endif
 			}
 		}
 	}
@@ -1762,7 +1778,7 @@ TPD_RESET_PROBE:
 	TPD_DMESG("[wj]the config_id_no is 0x%08x .\n", config_id_no);
 
 	//Need to implement in a kthread
-	if(config_id_no < CONFIG_ID)//config_id_no < 0x30303033
+	if(0)//config_id_no < 0x30303033
 	{
 		TPD_DMESG("TPD auto upgrade\n");
 		synaptics_rmi4_detection_work(NULL);
