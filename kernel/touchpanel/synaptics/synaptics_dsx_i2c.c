@@ -16,7 +16,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#define DEBUG 1
+//#define DEBUG 1
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/slab.h>
@@ -114,6 +114,7 @@ const u16 touch_key_array[] = { KEY_MENU, KEY_HOMEPAGE, KEY_BACK};
 #define MAX_KEY_NUM ( sizeof( touch_key_array )/sizeof( touch_key_array[0] ) )
 #endif
 static u8 boot_mode;
+static u8 config_id[4];
 
 // for DMA accessing
 static u8 *gpwDMABuf_va = NULL;
@@ -132,6 +133,7 @@ extern void mt_eint_registration(unsigned int eint_num, unsigned int flag, void 
 
 
 static void tpd_eint_handler(void);
+
 static int touch_event_handler(void *data);
 
 static int synaptics_rmi4_i2c_read(struct synaptics_rmi4_data *rmi4_data,
@@ -172,6 +174,9 @@ static ssize_t synaptics_rmi4_f01_productinfo_show(struct device *dev,
 		struct device_attribute *attr, char *buf);
 
 static ssize_t synaptics_rmi4_f01_buildid_show(struct device *dev,
+		struct device_attribute *attr, char *buf);
+
+static ssize_t synaptics_rmi4_f01_deviceinfo_show(struct device *dev,
 		struct device_attribute *attr, char *buf);
 
 static ssize_t synaptics_rmi4_f01_flashprog_show(struct device *dev,
@@ -408,6 +413,9 @@ static struct device_attribute attrs[] = {
 	__ATTR(buildid, S_IRUGO,
 			synaptics_rmi4_f01_buildid_show,
 			synaptics_rmi4_store_error),
+	__ATTR(deviceinfo, S_IRUGO,
+			synaptics_rmi4_f01_deviceinfo_show,
+			synaptics_rmi4_store_error),
 	__ATTR(flashprog, S_IRUGO,
 			synaptics_rmi4_f01_flashprog_show,
 			synaptics_rmi4_store_error),
@@ -485,6 +493,16 @@ static ssize_t synaptics_rmi4_f01_buildid_show(struct device *dev,
 
 	return snprintf(buf, PAGE_SIZE, "%u\n",
 			rmi4_data->firmware_id);
+}
+
+static ssize_t synaptics_rmi4_f01_deviceinfo_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+//	struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
+
+	return snprintf(buf, PAGE_SIZE, "%s 0x%02x%02x%02x%02x 0x%06x \n",
+			rmi4_data->rmi4_mod_info.product_id_string, config_id[0],config_id[1],config_id[2],config_id[3], rmi4_data->firmware_id);
+
 }
 
 static ssize_t synaptics_rmi4_f01_flashprog_show(struct device *dev,
@@ -1247,17 +1265,15 @@ static void synaptics_rmi4_f1a_report(struct synaptics_rmi4_data *rmi4_data,
 				}
 			}
 			touch_count++;
-			input_report_key(tpd->kpd,
+			input_report_key(tpd->dev,
 					tpd_keys_local[button],
-//					f1a->button_map[button],
 					status);
 		} else {
 			if (before_2d_status[button] == 1) {
 				before_2d_status[button] = 0;
 				touch_count++;
-				input_report_key(tpd->kpd,
+				input_report_key(tpd->dev,
 						tpd_keys_local[button],
-//						f1a->button_map[button],
 						status);
 			} else {
 				if (status == 1)
@@ -1268,17 +1284,22 @@ static void synaptics_rmi4_f1a_report(struct synaptics_rmi4_data *rmi4_data,
 		}
 #else
 		touch_count++;
-		input_report_key(tpd->kpd,
+		tpd_report_keypress(button, status);
+		input_report_key(tpd->dev,
 				tpd_keys_local[button],
-//				f1a->button_map[button],
 				status);
 #endif
 	}
 
 	if (touch_count)
-		input_sync(tpd->kpd);
+		input_sync(tpd->dev);
 
 	return;
+}
+
+static void tpd_report_keypress(button, status)
+{
+	input_report_key(tpd->dev, tpd_keys_local[button], status);
 }
 
  /**
@@ -2302,6 +2323,10 @@ flash_prog_mode:
 			(f01_query[10] & MASK_7BIT);
 	memcpy(rmi->product_id_string, &f01_query[11], 10);
 
+	dev_dbg(&rmi4_data->i2c_client->dev,
+				"%s: Product ID = %s\n",
+				__func__, rmi->product_id_string);
+
 	if (rmi->manufacturer_id != 1) {
 		dev_err(&rmi4_data->i2c_client->dev,
 				"%s: Non-Synaptics device found, manufacturer ID = %d\n",
@@ -2315,9 +2340,30 @@ flash_prog_mode:
 	if (retval < 0)
 		return retval;
 
+	dev_dbg(&rmi4_data->i2c_client->dev,
+				"%s: Build ID = 0x%08x\n",
+				__func__, rmi->build_id);
+
 	rmi4_data->firmware_id = (unsigned int)rmi->build_id[0] +
 			(unsigned int)rmi->build_id[1] * 0x100 +
 			(unsigned int)rmi->build_id[2] * 0x10000;
+
+
+/*	retval = synaptics_rmi4_i2c_read(rmi4_data,
+                                rmi4_data->f34_fd.ctrl_base_addr,
+                                &config_id,
+                                sizeof(config_id));
+*/
+	retval = synaptics_rmi4_i2c_read(rmi4_data, 0x004c, config_id, sizeof(config_id));
+	if (retval < 0)
+	{
+		dev_err(&rmi4_data->i2c_client->dev,"Failed to read config (code %d).\n", retval);
+		return retval;
+	}
+
+	dev_dbg(&rmi4_data->i2c_client->dev,
+				"%s: Config ID = 0x%02x%02x%02x%02x\n",
+				__func__, config_id[0],config_id[1],config_id[2],config_id[3]);
 
 	memset(rmi4_data->intr_mask, 0x00, sizeof(rmi4_data->intr_mask));
 
@@ -2810,6 +2856,11 @@ static int __devinit synaptics_rmi4_probe(struct i2c_client *client,
 		exp_data.initialized = true;
 	}
 
+#ifdef HAVE_TOUCH_KEY
+	set_bit(EV_KEY, tpd->dev->evbit);
+	for(i=0;i<MAX_KEY_NUM;i++)
+		__set_bit(touch_key_array[i], tpd->dev->keybit);
+#endif
 
 	exp_data.workqueue = create_singlethread_workqueue("dsx_exp_workqueue");
 	INIT_DELAYED_WORK(&exp_data.work, synaptics_rmi4_exp_fn_work);
@@ -3204,10 +3255,14 @@ static int tpd_local_init(void)
 #ifdef TPD_HAVE_BUTTON     
 	tpd_button_setting(TPD_KEY_COUNT, tpd_keys_local, tpd_keys_dim_local);// initialize tpd button data
 #endif 
-	boot_mode = get_boot_mode();
+
+// what is this??
+//    input_set_abs_params(rmi4_data->input_dev, ABS_MT_TRACKING_ID, 0, (10-1), 0, 0);
+
+/*	boot_mode = get_boot_mode();
 	if (boot_mode == 3) {
 		boot_mode = NORMAL_BOOT;
-	}  
+	}  */
 	return 0;
 }
 
