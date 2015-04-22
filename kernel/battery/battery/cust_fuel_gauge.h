@@ -53,7 +53,6 @@ typedef enum
     T3_50C
 } PROFILE_TEMPERATURE;
 
-
 // T0 -10C
 BATTERY_PROFILE_STRUC battery_profile_t0[] =
 {
@@ -138,12 +137,11 @@ BATTERY_PROFILE_STRUC battery_profile_t0[] =
 	{100 , 3689},
 	{100 , 3689},
 	{100 , 3689}
-};
-
-
-// T1 0C
+};      
+         
+// T1 0C 
 BATTERY_PROFILE_STRUC battery_profile_t1[] =
-{
+{              
 	{0 , 4331},
 	{1 , 4312},
 	{3 , 4293},
@@ -193,17 +191,17 @@ BATTERY_PROFILE_STRUC battery_profile_t1[] =
 	{63 , 3789},
 	{65 , 3785},
 	{66 , 3781},
-	{68 , 3778},
-	{69 , 3775},
+	{	68	,	3778	},
+	{	69	,	3775	},
 	{70 , 3772},
-	{72 , 3769},
+	{	72	,	3769	},
 	{73 , 3766},
 	{74 , 3763},
 	{76 , 3760},
 	{77 , 3756},
 	{79 , 3752},
 	{80 , 3748},
-	{81 , 3743},
+	{	81	,	3743	},
 	{83 , 3739},
 	{84 , 3733},
 	{85 , 3726},
@@ -225,12 +223,12 @@ BATTERY_PROFILE_STRUC battery_profile_t1[] =
 	{100 , 3576},
 	{100 , 3576},
 	{100 , 3576}
-};
+};             
 
 
 // T2 25C
 BATTERY_PROFILE_STRUC battery_profile_t2[] =
-{
+{              
 	{0 , 4333},
 	{1 , 4312},
 	{3 , 4293},
@@ -289,7 +287,7 @@ BATTERY_PROFILE_STRUC battery_profile_t2[] =
 	{74 , 3758},
 	{76 , 3752},
 	{77 , 3747},
-	{78 , 3742},
+	{	78	,	3742	},
 	{80 , 3738},
 	{81 , 3732},
 	{82 , 3725},
@@ -312,12 +310,12 @@ BATTERY_PROFILE_STRUC battery_profile_t2[] =
 	{100 , 3470},
 	{100 , 3470},
 	{100 , 3470}
-};
+};             
 
 
 // T3 50C
 BATTERY_PROFILE_STRUC battery_profile_t3[] =
-{
+{              
 	{0 , 4339},
 	{1 , 4310},
 	{3 , 4292},
@@ -383,11 +381,11 @@ BATTERY_PROFILE_STRUC battery_profile_t3[] =
 	{86 , 3699},
 	{87 , 3692},
 	{88 , 3685},
-	{90 , 3674},
+	{	90	,	3674	},
 	{91 , 3670},
 	{92 , 3668},
 	{94 , 3665},
-	{95 , 3659},
+	{	95	,	3659	},
 	{97 , 3637},
 	{98 , 3588},
 	{99 , 3520},
@@ -399,9 +397,9 @@ BATTERY_PROFILE_STRUC battery_profile_t3[] =
 	{100 , 3421},
 	{100 , 3421},
 	{100 , 3421}
-};
-
+};             
            
+
 // battery profile for actual temperature. The size should be the same as T1, T2 and T3
 BATTERY_PROFILE_STRUC battery_profile_temperature[] =
 {
@@ -466,15 +464,15 @@ BATTERY_PROFILE_STRUC battery_profile_temperature[] =
 	{0  , 0 },         
 	{0  , 0 },         
 	{0  , 0 },          
-  {0  , 0 },
-  {0  , 0 },
-  {0  , 0 },
-  {0  , 0 },
-  {0  , 0 },
-  {0  , 0 },
-  {0  , 0 },
-  {0  , 0 },
-  {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
+       {0  , 0 },
 	{0  , 0 }, 
 	{0  , 0 },
 	{0  , 0 },
@@ -485,7 +483,7 @@ BATTERY_PROFILE_STRUC battery_profile_temperature[] =
 	{0  , 0 }, 
 	{0  , 0 }, 
 	{0  , 0 }, 
-	{0  , 0 }
+	{0  , 0 }  
 };      
 
 /////////////////////////////////////////////////////////////////////
@@ -497,9 +495,9 @@ typedef struct _R_PROFILE_STRUC
     kal_int32 voltage;
 } R_PROFILE_STRUC, *R_PROFILE_STRUC_P;
 
-// R0 -10C
+// T0 -10C
 R_PROFILE_STRUC r_profile_t0[] =
-{
+{              
 	{333 , 4324},
 	{388 , 4309},
 	{748 , 4289},
@@ -581,12 +579,13 @@ R_PROFILE_STRUC r_profile_t0[] =
 	{1223 , 3689},
 	{1223 , 3689},
 	{1223 , 3689}
-};
+};             
+              
 
 
-// R1 0C
+// T1 0C
 R_PROFILE_STRUC r_profile_t1[] =
-{
+{              
 	{228 , 4331},
 	{195 , 4312},
 	{310 , 4293},
@@ -668,12 +667,12 @@ R_PROFILE_STRUC r_profile_t1[] =
 	{943 , 3576},
 	{943 , 3576},
 	{943 , 3576}
-};
+}; 
 
 
-// R2 25C
+// T2 25C
 R_PROFILE_STRUC r_profile_t2[] =
-{
+{              
 	{138 , 4333},
 	{170 , 4312},
 	{173 , 4293},
@@ -758,9 +757,11 @@ R_PROFILE_STRUC r_profile_t2[] =
 };
 
 
-// R3 50C
+
+
+// T3 50C
 R_PROFILE_STRUC r_profile_t3[] =
-{
+{              
 	{170 , 4339},
 	{150 , 4310},
 	{158 , 4292},

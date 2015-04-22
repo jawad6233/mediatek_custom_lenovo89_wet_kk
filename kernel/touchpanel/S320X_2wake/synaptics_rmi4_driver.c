@@ -13,7 +13,7 @@
 #include "tpd.h"
 #include "synaptics_dsx_rmi4_i2c.h"
 //#include "SynaImageLenovo.h"
-#include "Lp.h"
+//#include "Lp.h"
 //#include "Sprout.h"
 
 #include <mach/mt_pm_ldo.h>
@@ -1759,7 +1759,7 @@ static  int update_firmware_thread(void *priv)
 //    CTP_DBG("the config_id_no is 0x%08x .\n", config_id_no);
 
     //Need to implement in a kthread
-    synaptics_fw_updater(synaImage);
+//    synaptics_fw_updater(synaImage);
 //    synaptics_fw_dumper();
 
     kthread_should_stop();

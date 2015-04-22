@@ -113,4 +113,4 @@
 #define IMG_SENSOR_I2C_GROUP_ID 0
 */
 
-#endif 
+#endif

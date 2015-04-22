@@ -35,12 +35,12 @@ typedef struct{
 #define ERR_CHARGE_TEMPERATURE  0xFF
 
 /* Recharging Battery Voltage */
-#define RECHARGING_VOLTAGE      4110
+//#define RECHARGING_VOLTAGE      4110
+#define RECHARGING_VOLTAGE      4250
 
 /* Charging Current Setting */
 #define USB_CHARGER_CURRENT					Cust_CC_450MA
-#define AC_CHARGER_CURRENT					Cust_CC_650MA	
-//#define bq24158_AC_CHARGING_CURRENT_750 750
+#define AC_CHARGER_CURRENT					Cust_CC_1600MA
 
 /* Battery Meter Solution */
 #define CONFIG_ADC_SOLUTION 	1
@@ -49,22 +49,20 @@ typedef struct{
 VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 	/*BattVolt,BattPercent*/
 	{3400,0},
-	{3686,10},
-	{3740,20},
-	{3771,30},
-	{3789,40},
-	{3820,50},
-	{3873,60},
-	{3943,70},
-	{4013,80},
-	{4100,90},
-	{4189,100},
+	{3641,10},
+	{3708,20},
+	{3741,30},
+	{3765,40},
+	{3793,50},
+	{3836,60},
+	{3891,70},
+	{3960,80},
+	{4044,90},
+	{4183,100},
 };
 
 /* Precise Tunning */
-//#define BATTERY_AVERAGE_SIZE 	600
-#define BATTERY_AVERAGE_SIZE 	60
-
+#define BATTERY_AVERAGE_SIZE 	30
 
 #define CHARGING_IDLE_MODE	 1
 
@@ -85,15 +83,15 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 /* Teperature related setting */
 #define RBAT_PULL_UP_R             39000
 #define RBAT_PULL_UP_VOLT          1800
-//#define TBAT_OVER_CRITICAL_LOW     68237
-//#define TBAT_OVER_CRITICAL_LOW     483954
-#define TBAT_OVER_CRITICAL_LOW 74354
+	#define TBAT_OVER_CRITICAL_LOW 67790
 #define BAT_TEMP_PROTECT_ENABLE    1
 #define BAT_NTC_10 0
 #define BAT_NTC_47 0
-#define BAT_NTC_BL197
+#define BAT_NTC_CG103JF103F
 
 /* The option of new charging animation */
 #define ANIMATION_NEW
+
+#define GPIO_CHR_CE_PIN GPIO_SWCHARGER_EN_PIN
 
 #endif /* _CUST_BAT_H_ */ 

@@ -33,15 +33,16 @@ typedef struct{
 #define ERR_CHARGE_TEMPERATURE  0xFF
 
 /* Recharging Battery Voltage */
-#define RECHARGING_VOLTAGE      4110
+#define RECHARGING_VOLTAGE      4340
 
 /* Charging Current Setting */
 #define CONFIG_USB_IF 						0   
-#define USB_CHARGER_CURRENT_SUSPEND			Cust_CC_0MA		// def CONFIG_USB_IF
-#define USB_CHARGER_CURRENT_UNCONFIGURED	Cust_CC_70MA	// def CONFIG_USB_IF
-#define USB_CHARGER_CURRENT_CONFIGURED		Cust_CC_450MA	// def CONFIG_USB_IF
-#define USB_CHARGER_CURRENT					Cust_CC_450MA
-#define AC_CHARGER_CURRENT					Cust_CC_650MA	
+#define USB_CHARGER_CURRENT_SUSPEND			0 //Cust_CC_0MA		// def CONFIG_USB_IF
+#define USB_CHARGER_CURRENT_UNCONFIGURED		70 //Cust_CC_70MA	// def CONFIG_USB_IF
+#define USB_CHARGER_CURRENT_CONFIGURED			500 //Cust_CC_450MA	// def CONFIG_USB_IF
+#define USB_CHARGER_CURRENT				500 //	Cust_CC_450MA
+#define AC_CHARGER_CURRENT				2000//	Cust_CC_650MA
+//#define bq24196_AC_CHARGING_CURRENT_750 1000
 
 /* Battery Meter Solution */
 #define CONFIG_ADC_SOLUTION 	1
@@ -80,35 +81,13 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 /* Teperature related setting */
 #define RBAT_PULL_UP_R             39000
 #define RBAT_PULL_UP_VOLT          1800
-#define TBAT_OVER_CRITICAL_LOW     67790
+//#define TBAT_OVER_CRITICAL_LOW     68237
 //#define TBAT_OVER_CRITICAL_LOW     483954
-//#define TBAT_OVER_CRITICAL_LOW 74354
+#define TBAT_OVER_CRITICAL_LOW     67790
 #define BAT_TEMP_PROTECT_ENABLE    1
 #define BAT_NTC_10 0
 #define BAT_NTC_47 0
 #define BAT_NTC_CG103JF103F
-
-/*#if defined(BAT_NTC_CG103JF103F)
-BATT_TEMPERATURE Batt_Temperature_Table[] = {
-{-20,67790},    
-{-15,53460},
-{-10,42450},
-{ -5,33930},
-{  0,27280},
-{  5,22070},
-{ 10,17960},
-{ 15,14700},
-{ 20,12090},
-{ 25,10000},
-{ 30,8312},
-{ 35,6942},
-{ 40,5826},
-{ 45,4911},
-{ 50,4158},
-{ 55,3536},
-{ 60,3019}
-};
-#endif*/
 
 /* Battery Notify */
 #define BATTERY_NOTIFY_CASE_0001
@@ -121,4 +100,6 @@ BATT_TEMPERATURE Batt_Temperature_Table[] = {
 
 #define GPIO_CHR_CE_PIN GPIO_SWCHARGER_EN_PIN
 
-#endif /* _CUST_BAT_H_ */
+#define HIGH_BATTERY_VOLTAGE_SUPPORT
+
+#endif /* _CUST_BAT_H_ */ 

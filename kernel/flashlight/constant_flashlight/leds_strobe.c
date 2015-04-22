@@ -23,6 +23,7 @@
 #include <linux/xlog.h>
 #include <mach/upmu_common.h>
 #if defined(LENOVO_PROJECT_SEINE)||defined(LENOVO_PROJECT_S820)||defined(LENOVO_PROJECT_A830)||defined(LENOVO_PROJECT_PRADA) || defined(LENOVO_PROJECT_S820_ROW) || defined(LENOVO_PROJECT_PRADA_ROW)
+
 #include <linux/i2c.h>
 #include <linux/leds.h>
 #include "leds-adp1650.h"
@@ -292,10 +293,64 @@ MODULE_DESCRIPTION("Flash Lighting driver for adp1650");
 MODULE_AUTHOR("zhangjiano <zhangjiano@lenovo.com>");
 MODULE_LICENSE("GPL v2");
 
+#define MULTI_FLASH
+
+#if defined(MULTI_FLASH)
+#define TORCH_BRIGHTNESS 0
+#define FLASH_BRIGHTNESS 15
+//extern void IMX135MIPI_strobe_control(bool on);
+#else
 #define TORCH_BRIGHTNESS 1
 #define FLASH_BRIGHTNESS 5
+#endif
+#if defined(MULTI_FLASH)
+int FL_enable(void)
+{
+	struct flash_chip_data *chip = &chipconf;
+	int brightness = 0;
+	u8 tmp4,tmp5;
+	PK_DBG("FL_enable g_duty=%d\n",g_duty);
+	#if 0
+	upmu_set_rg_bst_drv_1m_ck_pdn(0);
+	upmu_set_flash_en(1);
+	#else
+	if(g_duty == TORCH_BRIGHTNESS)//torch
+	{
+		adp1650_write_reg(adp1650_i2c_client, 0x03, 0x04);
+		adp1650_write_reg(adp1650_i2c_client, 0x04, 0xAC); //75ma torch output_en'
+		udelay(50);
+		mt_set_gpio_out(FLASH_PIN, GPIO_OUT_ZERO);
+		//IMX135MIPI_strobe_control(0);
 
+		mt_set_gpio_out(TORCH_PIN, GPIO_OUT_ONE);
+		
+		PK_DBG("FL_enable  torch brightness=%d\n",brightness);
+		
+		chip->torch_level = brightness;
+		chip->mode = 1;
+	}
+	else if((g_duty >= (TORCH_BRIGHTNESS+1))&&(g_duty <= FLASH_BRIGHTNESS))
+	{
+		brightness =g_duty<<3;
+		PK_DBG("FL_enable flash brightness=%d\n",brightness);
+		adp1650_write_reg(adp1650_i2c_client, 0x03, brightness&0xF8); //75ma torch output_en'
+		adp1650_write_reg(adp1650_i2c_client, 0x04, 0xAF); //750ma flash output_en
+		mt_set_gpio_out(FLASH_PIN, GPIO_OUT_ONE);
+		//IMX135MIPI_strobe_control(1);
+		
+		mt_set_gpio_out(TORCH_PIN, GPIO_OUT_ZERO);
+		//udelay(100);
+		adp1650_read_reg(adp1650_i2c_client, 0x05, &tmp5);
+        	adp1650_read_reg(adp1650_i2c_client, 0x04, &tmp4);
+		PK_DBG("FL_enable tmp4=%d,tmp5=%d\n",tmp4,tmp5);
 
+		chip->torch_level = 0;
+		chip->mode = 2;
+	}
+	#endif
+    return 0;
+}
+#else
 int FL_enable(void)
 {
 	struct flash_chip_data *chip = &chipconf;
@@ -339,19 +394,15 @@ int FL_enable(void)
 	#endif
     return 0;
 }
-
+#endif
 int FL_disable(void)
 {
 	struct flash_chip_data *chip = &chipconf;
 	PK_DBG("FL_disable g_duty=%d\n",g_duty);
-	#if 0
-	upmu_set_rg_bst_drv_1m_ck_pdn(1);
-	upmu_set_flash_en(0);
-	#else
+	//IMX135MIPI_strobe_control(0);
 	mt_set_gpio_out(FLASH_PIN, GPIO_OUT_ZERO);
-    	mt_set_gpio_out(TORCH_PIN, GPIO_OUT_ZERO);
+	mt_set_gpio_out(TORCH_PIN, GPIO_OUT_ZERO);
 	udelay(50);
-	#endif
 	chip->torch_level = 0;
 	chip->mode = 0;
 
