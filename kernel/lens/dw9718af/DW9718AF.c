@@ -18,11 +18,13 @@ static struct i2c_board_info __initdata kd_lens_dev={ I2C_BOARD_INFO("DW9718AF",
 
 
 #define DW9718AF_DRVNAME "DW9718AF"
-#define DW9718AF_VCM_WRITE_ID           0x19
+#define DW9718AF_VCM_WRITE_ID           0x18
 
 #define DW9718AF_DEBUG
+#define DW9718TAG                "[DW9718] "
 #ifdef DW9718AF_DEBUG
-#define DW9718AFDB printk
+//#define DW9718AFDB printk
+  #define DW9718AFDB(fmt, arg...)   printk(DW9718TAG fmt, ##arg)
 #else
 #define DW9718AFDB(x,...)
 #endif
@@ -367,7 +369,7 @@ inline static int Register_DW9718AF_CharDrv(void)
         return -EAGAIN;
     }
 
-    actuator_class = class_create(THIS_MODULE, "actuatordrv0");
+    actuator_class = class_create(THIS_MODULE, "actuatordrv_9718");
     if (IS_ERR(actuator_class)) {
         int ret = PTR_ERR(actuator_class);
         DW9718AFDB("Unable to create class, err = %d\n", ret);
@@ -432,7 +434,7 @@ static int DW9718AF_i2c_probe(struct i2c_client *client, const struct i2c_device
 
     /* Kirby: add new-style driver { */
     g_pstDW9718AF_I2Cclient = client;
-    
+    g_pstDW9718AF_I2Cclient->addr = DW9718AF_VCM_WRITE_ID;
     g_pstDW9718AF_I2Cclient->addr = g_pstDW9718AF_I2Cclient->addr >> 1;
     
     //Register char driver
@@ -454,6 +456,7 @@ static int DW9718AF_i2c_probe(struct i2c_client *client, const struct i2c_device
 
 static int DW9718AF_probe(struct platform_device *pdev)
 {
+ DW9718AFDB("[DW9718AF] DW9718AF_probe!! \n");
     return i2c_add_driver(&DW9718AF_i2c_driver);
 }
 
@@ -480,7 +483,7 @@ static struct platform_driver g_stDW9718AF_Driver = {
     .suspend	= DW9718AF_suspend,
     .resume	= DW9718AF_resume,
     .driver		= {
-        .name	= "lens_actuator0",
+        .name	= "lens_actuator_9718",
         .owner	= THIS_MODULE,
     }
 };

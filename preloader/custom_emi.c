@@ -72,47 +72,77 @@
 
 #include "mt_emi.h"
 
-#define NUM_EMI_RECORD (1)
+#define NUM_EMI_RECORD (3)
 
-int num_of_emi_records = NUM_EMI_RECORD ;
+int num_of_emi_records = NUM_EMI_RECORD;
 
 EMI_SETTINGS emi_settings[] =
 {
-     
-	//KMKJS000VM_B309
-	{
-		0x1,		/* sub_version */
-		0x0202,		/* TYPE */
-		9,		/* EMMC ID/FW ID checking length */
-		1,		/* FW length */
-		{0x15,0x01,0x00,0x4B,0x4A,0x53,0x30,0x30,0x4D,0x0,0x0,0x0,0x0,0x0,0x0,0x0},		/* NAND_EMMC_ID */
-		{0x03,0x0,0x0,0x0,0x0,0x0,0x0,0x0},		/* FW_ID */
-		0x0002A3AE,		/* EMI_CONA_VAL */
-		0xCC00CC00,		/* DRAMC_DRVCTL0_VAL */
-		0xCC00CC00,		/* DRAMC_DRVCTL1_VAL */
-		0x00000008,		/* DRAMC_DLE_VAL */
-		0x666844B4,		/* DRAMC_ACTIM_VAL */
-		0x11000000,		/* DRAMC_GDDR3CTL1_VAL */
-		0xF07486E1,		/* DRAMC_CONF1_VAL */
-		0xC0063201,		/* DRAMC_DDR2CTL_VAL */
-		0x9F098CA0,		/* DRAMC_TEST2_3_VAL */
-		0x0340633F,		/* DRAMC_CONF2_VAL */
-		0x11642342,		/* DRAMC_PD_CTRL_VAL */
-		0x00008888,		/* DRAMC_PADCTL3_VAL */
-		0xEEEEEEEE,		/* DRAMC_DQODLY_VAL */
-		0x00000000,		/* DRAMC_ADDR_OUTPUT_DLY */
-		0x00000000,		/* DRAMC_CLK_OUTPUT_DLY */
-		0x01000e10,		/* DRAMC_ACTIM1_VAL*/
-		0x07000000,		/* DRAMC_MISCTL0_VAL*/
-		{0x20000000,0x20000000,0,0},		/* DRAM RANK SIZE */
-		0x1,		/* MMD info */
-		{0,0,0,0,0,0,0,0},		/* reserved 8 */
-		0x00C30001,		/* DDR2_MODE_REG1 */
-		0x00060002,		/* DDR2_MODE_REG2 */
-		0x00020003,		/* DDR2_MODE_REG3 */
-		0x00FF000A,		/* DDR2_MODE_REG10 */
-		0x0000003F,		/* DDR2_MODE_REG63 */
-		0x1,		/* DDR2_MODE_REG5 */
-	} ,
+{
+        0x0101,            //MCP(NAND+DDR1)
+	{0xAD, 0xBC, 0x90, 0x55, 0x54},       //HYNIX
+        0x0002202E,        //CONA
+        0x88008800,        //DRVCTL0
+        0x88008800,        //DRVCTL1
+        0x00000005,        //DLE
+        0x22824154,        //ACTIM
+        0x00000000,        //GDDR3CTL
+        0xF0040560,        //CONF1
+        0x8283405C,        //DDR2CTL
+        0x9F068CA0,        //TEST2_3
+        0x00403361,        //CONF2
+        0x11642842,        //PD_CTRL
+        0x00000000,        //PADCTL3
+        0x00000000,        //DQODLY
+        0x00000000,        //ADDRODLY
+        0x00000000,        //CLKODLY
+        .reserved = {[0 ... 9] = 0},
+        0x00000032,        //MODE_REG
+        0x00000020,        //EXT_MODE_REG
+    },
+{
+        0x0101,            //MCP(NAND+DDR1)
+        {0x2C, 0xBC, 0x90, 0x55, 0x56},      //MICRON
+        0x0002202E,        //CONA
+        0x88008800,        //DRVCTL0
+        0x88008800,        //DRVCTL1
+        0x00000005,        //DLE
+        0x22824154,        //ACTIM
+        0x00000000,        //GDDR3CTL
+        0xF0040560,        //CONF1
+        0x8283405C,        //DDR2CTL
+        0x9F008CA0,        //TEST2_3
+        0x00403361,        //CONF2
+        0x11642842,        //PD_CTRL
+        0x00000000,        //PADCTL3
+        0x00000000,        //DQODLY
+        0x00000000,        //ADDRODLY
+        0x00000000,        //CLKODLY
+        .reserved = {[0 ... 9] = 0},
+        0x00000032,        //MODE_REG
+        0x00000020,        //EXT_MODE_REG
+    },
+{
+        0x0101,            //MCP(NAND+DDR1)
+        {0xEC, 0xBC, 0x00, 0x66, 0x56},          //SAMSUNG
+        0x0002202E,        //CONA
+        0x88008800,        //DRVCTL0
+        0x88008800,        //DRVCTL1
+        0x00000005,        //DLE
+        0x22824165,        //ACTIM
+        0x00000000,        //GDDR3CTL
+        0xF00405A0,        //CONF1
+        0x8283405C,        //DDR2CTL
+        0x9F048CA0,        //TEST2_3
+        0x00403361,        //CONF2
+        0x11642842,        //PD_CTRL
+        0x00000000,        //PADCTL3
+        0x00000000,        //DQODLY
+        0x00000000,        //ADDRODLY
+        0x00000000,        //CLKODLY
+        .reserved = {[0 ... 9] = 0},
+        0x00000032,        //MODE_REG
+        0x00000020,        //EXT_MODE_REG
+    },
 };
 

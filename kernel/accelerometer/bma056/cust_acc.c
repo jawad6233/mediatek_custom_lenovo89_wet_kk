@@ -16,5 +16,3 @@ struct acc_hw* get_cust_acc_hw(void)
 {
     return &cust_acc_hw;
 }
-
-

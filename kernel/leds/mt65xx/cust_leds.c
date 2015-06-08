@@ -39,11 +39,12 @@ unsigned int brightness_mapping(unsigned int level)
 	return mapped_level;
 }
 
+#ifndef LENOVO_LEDS_GPIO_SUPPORT
 static int brightness_set_gpio(int gpio_num, int level)
 {
 //	LEDS_INFO("LED GPIO#%d:%d\n", gpio_num, level);
-	mt_set_gpio_mode(gpio_num, GPIO_MODE_00);// GPIO MODE
-	mt_set_gpio_dir(gpio_num, GPIO_DIR_OUT);
+//	mt_set_gpio_mode(gpio_num, GPIO_MODE_00);// GPIO MODE
+//	mt_set_gpio_dir(gpio_num, GPIO_DIR_OUT);
 
 	if (level)
 		mt_set_gpio_out(gpio_num, GPIO_OUT_ONE);
@@ -57,6 +58,7 @@ int green_led_set_brightness(unsigned int level)
 {
 	return brightness_set_gpio(GPIO149, level);
 }
+#endif
 
 /*
 unsigned int Cust_SetBacklight(int level, int div)
@@ -138,8 +140,12 @@ unsigned int Cust_SetBacklight(int level, int div)
  */
 static struct cust_mt65xx_led cust_led_list[MT65XX_LED_TYPE_TOTAL] = {
 	{"red",              MT65XX_LED_MODE_NONE, -1,{0}},
+#ifndef LENOVO_LEDS_GPIO_SUPPORT
 	{"green",            MT65XX_LED_MODE_GPIO, (int)green_led_set_brightness,{0}},
-	{"greenled",         MT65XX_LED_MODE_GPIO, (int)green_led_set_brightness,{0}},
+//	{"greenled",         MT65XX_LED_MODE_GPIO, (int)green_led_set_brightness,{0}},
+#else
+	{"green",            MT65XX_LED_MODE_NONE, -1,{0}},
+#endif
 	{"blue",              MT65XX_LED_MODE_NONE, -1,{0}},
 	{"jogball-backlight", MT65XX_LED_MODE_NONE, -1,{0}},
 	{"keyboard-backlight",MT65XX_LED_MODE_NONE, -1,{0}},

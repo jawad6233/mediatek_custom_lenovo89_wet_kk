@@ -11,6 +11,13 @@
 #define CFG_DEV_MSDC0
 #endif
 #define CFG_DEV_MSDC1
+
+/*Begin, lenovo-sw wangxf14 20140129 add, add for no extern sdcard*/
+#if (MTK_MULTI_STORAGE_SUPPORT == no)
+#undef CFG_DEV_MSDC1
+#endif
+/*End, lenovo-sw wangxf14 20140129 add, add for no extern sdcard*/
+
 //#define CFG_DEV_MSDC2
 #define CFG_DEV_MSDC3
 //#define CFG_DEV_MSDC4

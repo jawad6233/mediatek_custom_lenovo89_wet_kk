@@ -53,7 +53,6 @@ MBOOL isRetFakeMain2Orientation()
 	return MFALSE;
 }
 
-
 /*******************************************************************************
 * Sensor Input Data Bit Order
 *   Return:
@@ -133,9 +132,9 @@ SensorViewAngle_T const&
 getSensorViewAngle()
 {
     static SensorViewAngle_T const inst = {
-        MainSensorHorFOV  : 53,   
-        MainSensorVerFOV  : 49,    
-        SubSensorHorFOV  : 52,   
+        MainSensorHorFOV  : 54,   
+        MainSensorVerFOV  : 42,    
+        SubSensorHorFOV  : 60,   
         SubSensorVerFOV  : 40,
         Main2SensorHorFOV  : 0,   //not support
         Main2SensorVerFOV  : 0,
@@ -143,7 +142,6 @@ getSensorViewAngle()
     return inst;
 
 }
-
 };
 
 //#endif //  _CFG_SETTING_IMGSENSOR_H_

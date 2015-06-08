@@ -47,13 +47,9 @@ extern PFUNC_GETLENSDEFAULT pSensorDrive_getDefaultData;
 #if defined(FM50AF)
 extern PFUNC_GETLENSDEFAULT pFM50AF_getDefaultData;
 #endif
-
+//lenovo.sw wangsx3 20140515 add main backup sensor ov8865
 #if defined(DW9718AF)
 extern PFUNC_GETLENSDEFAULT pDW9718AF_getDefaultData;
-#endif
-
-#if defined(OV8825AF)
-extern PFUNC_GETLENSDEFAULT pOV8825AF_getDefaultData;
 #endif
 
 MSDK_LENS_INIT_FUNCTION_STRUCT LensList[MAX_NUM_OF_SUPPORT_LENS] =
@@ -61,21 +57,18 @@ MSDK_LENS_INIT_FUNCTION_STRUCT LensList[MAX_NUM_OF_SUPPORT_LENS] =
 	{DUMMY_SENSOR_ID, DUMMY_LENS_ID, "Dummy", pDummy_getDefaultData},
 
 #if defined(SENSORDRIVE)
-	{DUMMY_SENSOR_ID, SENSOR_DRIVE_LENS_ID, "kd_camera_hw", pSensorDrive_getDefaultData},	
+    //	{DUMMY_SENSOR_ID, SENSOR_DRIVE_LENS_ID, "kd_camera_hw", pSensorDrive_getDefaultData},	
 
     //  for backup lens, need assign correct SensorID
-    //{OV5642_SENSOR_ID, SENSOR_DRIVE_LENS_ID, "kd_camera_hw", pSensorDrive_getDefaultData},
+    {OV3640_SENSOR_ID, SENSOR_DRIVE_LENS_ID, "kd_camera_hw", pSensorDrive_getDefaultData},
 #endif
 
-#if defined(OV8825AF)
-		{OV8825_SENSOR_ID, OV8825AF_LENS_ID, "OV8825AF", pOV8825AF_getDefaultData},
-#endif
 #if defined(FM50AF)
-	{DUMMY_SENSOR_ID, FM50AF_LENS_ID, "FM50AF", pFM50AF_getDefaultData},
+	{OV8825_SENSOR_ID, FM50AF_LENS_ID, "FM50AF", pFM50AF_getDefaultData},
 #endif
-
+//lenovo.sw wangsx3 20140515 add main backup sensor ov8865
 #if defined(DW9718AF)
-	{DUMMY_SENSOR_ID, DW9718AF_LENS_ID, "DW9718AF", pDW9718AF_getDefaultData},
+  {OV8865_SENSOR_ID, DW9718AF_LENS_ID, "DW9718AF", pDW9718AF_getDefaultData},
 #endif
     //  for new added lens, need assign correct SensorID
 

@@ -27,22 +27,33 @@ typedef struct{
 	unsigned int BattPercent;
 }VBAT_TO_PERCENT;
 
+#define LENOVO_PROJECT_PRADA
+
 /* Battery Temperature Protection */
+/*lenovo-sw weiweij added for high temp warning*/
+//lenovo_sw liaohj add smartt_rom 2013-10-01
+#if defined(LENOVO_PROJECT_SNOOPY)|| defined(LENOVO_PROJECT_SNOOPY_CU) || defined(LENOVO_PROJECT_SMARTT)|| defined(LENOVO_PROJECT_SNOOPYTD)
+#define MAX_CHARGE_TEMPERATURE  58
+#else
 #define MAX_CHARGE_TEMPERATURE  50
+#endif
+/*lenovo-sw weiweij added for high temp warning*/
 #define MIN_CHARGE_TEMPERATURE  0
 #define ERR_CHARGE_TEMPERATURE  0xFF
 
 /* Recharging Battery Voltage */
-#define RECHARGING_VOLTAGE      4340
-
+#ifdef HIGH_BATTERY_VOLTAGE_SUPPORT
+#define RECHARGING_VOLTAGE      4250
+#else
+#define RECHARGING_VOLTAGE      4110
+#endif
 /* Charging Current Setting */
 #define CONFIG_USB_IF 						0   
-#define USB_CHARGER_CURRENT_SUSPEND			0 //Cust_CC_0MA		// def CONFIG_USB_IF
-#define USB_CHARGER_CURRENT_UNCONFIGURED		70 //Cust_CC_70MA	// def CONFIG_USB_IF
-#define USB_CHARGER_CURRENT_CONFIGURED			500 //Cust_CC_450MA	// def CONFIG_USB_IF
-#define USB_CHARGER_CURRENT				500 //	Cust_CC_450MA
-#define AC_CHARGER_CURRENT				2000//	Cust_CC_650MA
-//#define bq24196_AC_CHARGING_CURRENT_750 1000
+#define USB_CHARGER_CURRENT_SUSPEND			Cust_CC_0MA		// def CONFIG_USB_IF
+#define USB_CHARGER_CURRENT_UNCONFIGURED	Cust_CC_70MA	// def CONFIG_USB_IF
+#define USB_CHARGER_CURRENT_CONFIGURED		Cust_CC_450MA	// def CONFIG_USB_IF
+#define USB_CHARGER_CURRENT					Cust_CC_450MA
+#define AC_CHARGER_CURRENT					Cust_CC_650MA	
 
 /* Battery Meter Solution */
 #define CONFIG_ADC_SOLUTION 	1
@@ -94,12 +105,9 @@ VBAT_TO_PERCENT Batt_VoltToPercent_Table[] = {
 #define BATTERY_NOTIFY_CASE_0002
 //#define BATTERY_NOTIFY_CASE_0003
 //#define BATTERY_NOTIFY_CASE_0004
-//#define BATTERY_NOTIFY_CASE_0005
+//lenovo_sw liaohj open chrtimer detect 2013-10-01
+#define BATTERY_NOTIFY_CASE_0005
 
 //#define CONFIG_POWER_VERIFY
-
-#define GPIO_CHR_CE_PIN GPIO_SWCHARGER_EN_PIN
-
-#define HIGH_BATTERY_VOLTAGE_SUPPORT
 
 #endif /* _CUST_BAT_H_ */ 

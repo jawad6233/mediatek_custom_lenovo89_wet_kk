@@ -22,7 +22,13 @@
 
 #define CFG_LOG_BAUDRATE            (921600)
 #define CFG_META_BAUDRATE           (115200)
+/*lenovo-sw jixj 2012.12.14 modified begin*/
+#if 0
 #define CFG_UART_LOG                (UART1)
+#else
+#define CFG_UART_LOG                (UART4)
+#endif
+/*lenovo-sw jixj 2012.12.14 modified end*/
 #define CFG_UART_META               (UART1)
 
 #define CFG_EMERGENCY_DL_SUPPORT    (1)

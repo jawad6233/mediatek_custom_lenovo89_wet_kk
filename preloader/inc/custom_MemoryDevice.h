@@ -103,23 +103,19 @@
 */
 
 #define BOARD_ID                MT6589_EVB
+//lenovo.sw :  for athena/prada hynix emmc
+//#define CS_PART_NUMBER[0]       KMKJS000VM_B309    //lenovo.sw : comment mt6589 default emmc	107
+#define CS_PART_NUMBER[0]    H9TP32A8JDMCPR_KGM      //lenovo.sw : define athena /prada emmc 
 
-//=====================================================================
-// T600  T600F
+//lenovo.sw : add to the second emcp : 8GB+8Gb
+#define CS_PART_NUMBER[1]       KMK7U000VM_B309
+//lenovo.sw : end
 
-//4+4
-//#define CS_PART_NUMBER[0]       KMNJS000ZM_B205
-//#define CS_PART_NUMBER[1]       H9TP32A4GDMCPR_KDM 
-//#define CS_PART_NUMBER[2]       KE4CN2L2HA5A2A
-//#define CS_PART_NUMBER[3]       SD7DP24F_4G
-//#define CS_PART_NUMBER[4]       MT29PZZZ4D4WKETF_18W_6E4
+/*lenovo-sw weiweij added for H9TP32A8JDACPR_KGM support*/
+#define CS_PART_NUMBER[2]       H9TP32A8JDACPR_KGM
+/*lenovo-sw weiweij added for H9TP32A8JDACPR_KGM support end*/
 
-//   4+8
-#define CS_PART_NUMBER[0]       KMKJS000VM_B309
-//#define CS_PART_NUMBER[1]       H9TP32A8JDMCPR_KGM
-//#define CS_PART_NUMBER[2]       KE4CN2L2HA8A2A
-//#define CS_PART_NUMBER[3]       SD5D28B_4G
-//#define CS_PART_NUMBER[4]       MT29PZZZ8D4WKFEW_18W_6D4
+#endif /* __CUSTOM_MEMORYDEVICE__ */
 
 //   8+8
 //#define CS_PART_NUMBER[0]      KMKUS000VM_B410
